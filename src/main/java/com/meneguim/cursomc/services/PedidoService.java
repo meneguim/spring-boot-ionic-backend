@@ -15,6 +15,7 @@ import com.meneguim.cursomc.domain.enums.EstadoPagamento;
 import com.meneguim.cursomc.repositories.ItemPedidoRepository;
 import com.meneguim.cursomc.repositories.PagamentoRepository;
 import com.meneguim.cursomc.repositories.PedidoRepository;
+import com.meneguim.cursomc.services.exceptions.ObjectNotFoundException;
 
 @Service
 public class PedidoService {
@@ -37,10 +38,12 @@ public class PedidoService {
 	@Autowired
 	private ClienteService clienteService;
 	
+	@Autowired
+	private EmailService emailService;
+	
 	public Pedido find(Integer id) {
 		Optional<Pedido> obj = repo.findById(id);
-		return obj.orElseThrow(() -> new com.meneguim.cursomc.services.exceptions.ObjectNotFoundException(
-						"Objeto não encontrado! Id: " + id + ", Tipo: " + Pedido.class.getName()));
+		return obj.orElseThrow(() -> new ObjectNotFoundException("Objeto não encontrado! Id: " + id + ", Tipo: " + Pedido.class.getName()));
 	}
 	
 	@Transactional
@@ -63,7 +66,7 @@ public class PedidoService {
 			ip.setPedido(obj);
 		}
 		itemPedidoRepository.saveAll(obj.getItens());	
-		System.out.println(obj);
+		emailService.sendOrderConfirmationEmail(obj);
 		return obj;
 	}
 	
